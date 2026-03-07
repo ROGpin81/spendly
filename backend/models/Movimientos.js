@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db/connection');
 
-const Movement = sequelize.define('movimientos', {
+const Movimientos = sequelize.define('movimientos', {
     id: {
         type: DataTypes.BIGINT,
         primaryKey: true,
@@ -55,4 +55,4 @@ const Movement = sequelize.define('movimientos', {
     timestamps: false 
 });
 
-module.exports = Movement;
+module.exports = Movimientos;
