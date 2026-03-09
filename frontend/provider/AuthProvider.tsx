@@ -9,10 +9,13 @@ interface Props {
 export default function AuthProvider({ children }: Props) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const login = (newToken: string, newUser: User) => {
+    setLoading(true);
     setToken(newToken);
     setUser(newUser);
+    setLoading(false);
   };
 
   const logout = () => {
@@ -21,7 +24,7 @@ export default function AuthProvider({ children }: Props) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
