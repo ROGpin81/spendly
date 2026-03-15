@@ -6,6 +6,7 @@ import MovementsScreen from '../page/MovementsScreen';
 import StatisticsScreen from '../page/StatisticsScreen';
 import MapScreen from '../page/MapScreen';
 import AdminScreen from '../page/AdminScreen';
+import CategoriesScreen from '../page/CategoriesScreen';
 
 export type MainTabParamList = {
   Dashboard: undefined;
@@ -13,6 +14,7 @@ export type MainTabParamList = {
   Statistics: undefined;
   Map: undefined;
   Admin: undefined;
+  Categories: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -46,10 +48,16 @@ export default function MainTabNavigator() {
         options={{ title: 'Mapa' }}
       />
       <Tab.Screen
+        name="Categories"
+        component={CategoriesScreen}
+        options={{ title: 'Categorías' }}
+      />
+      <Tab.Screen
         name="Admin"
         component={AdminScreen}
         options={{ title: 'Admin' }}
       />
+
     </Tab.Navigator>
   );
 }

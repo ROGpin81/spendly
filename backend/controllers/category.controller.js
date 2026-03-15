@@ -24,6 +24,8 @@ const getCategories = async (req, res) => {
 
 const createCategory = async (req, res) => {
   try {
+    console.log('Body recibido en createCategory:', req.body);
+    console.log('Usuario autenticado:', req.user);
     const { name } = req.body;
 
     if (!name || name.trim() === '') {
