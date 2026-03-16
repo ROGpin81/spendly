@@ -9,10 +9,17 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     ...options,
   });
 
-  const data = await response.json().catch(() => null);
+  const text = await response.text();
+  let data = null;
+
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch (error) {
+    data = null;
+  }
 
   if (!response.ok) {
-    throw new Error(data?.message || 'Error en la solicitud');
+    throw new Error(data?.message || data?.error || `Error HTTP ${response.status}`);
   }
 
   return data;
