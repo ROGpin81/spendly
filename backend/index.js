@@ -8,6 +8,7 @@ const categoryRoutes = require('./routes/category.routes');
 const movementRoutes = require('./routes/movement.routes');
 const reportRoutes = require('./routes/report.routes');
 const statsRoutes = require('./routes/stats.routes');
+const mapRoutes = require('./routes/map.routes');
 
 // Importar asociaciones entre modelos
 require('./models/associations');
@@ -28,6 +29,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/movements', movementRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/map', mapRoutes);
 
 const PORT = process.env.APP_PORT;
 
