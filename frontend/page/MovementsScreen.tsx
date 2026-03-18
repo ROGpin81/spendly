@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import * as Location from 'expo-location';
 import { AuthContext } from '../context/AuthContext';
 import { Movement } from '../models/Movement';
 import { Category } from '../models/Category';
@@ -31,8 +32,11 @@ export default function MovementsScreen() {
   const [amount, setAmount] = useState('');
   const [movementDate, setMovementDate] = useState('');
   const [note, setNote] = useState('');
+  const [locationLat, setLocationLat] = useState<number | null>(null);
+  const [locationLng, setLocationLng] = useState<number | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [capturingLocation, setCapturingLocation] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -70,8 +74,47 @@ export default function MovementsScreen() {
     setAmount('');
     setMovementDate(today());
     setNote('');
+    setLocationLat(null);
+    setLocationLng(null);
     setEditingId(null);
     setIsEditing(false);
+  };
+
+  const handleCaptureLocation = async () => {
+    try {
+      setCapturingLocation(true);
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permiso requerido',
+          'Debes permitir el acceso a la ubicación para usar esta función.'
+        );
+        return;
+      }
+
+      const currentLocation = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const lat = currentLocation.coords.latitude;
+      const lng = currentLocation.coords.longitude;
+
+      setLocationLat(lat);
+      setLocationLng(lng);
+
+      Alert.alert('Éxito', 'Ubicación capturada correctamente');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo obtener la ubicación');
+    } finally {
+      setCapturingLocation(false);
+    }
+  };
+
+  const handleClearLocation = () => {
+    setLocationLat(null);
+    setLocationLng(null);
   };
 
   const handleCreateMovement = async () => {
@@ -99,6 +142,8 @@ export default function MovementsScreen() {
         amount: Number(amount),
         movement_date: movementDate,
         note,
+        location_lat: locationLat,
+        location_lng: locationLng,
       });
 
       resetForm();
@@ -117,6 +162,8 @@ export default function MovementsScreen() {
     setAmount(String(movement.amount));
     setMovementDate(movement.movement_date);
     setNote(movement.note || '');
+    setLocationLat(movement.location_lat ?? null);
+    setLocationLng(movement.location_lng ?? null);
   };
 
   const handleUpdateMovement = async () => {
@@ -144,6 +191,8 @@ export default function MovementsScreen() {
         amount: Number(amount),
         movement_date: movementDate,
         note,
+        location_lat: locationLat,
+        location_lng: locationLng,
       });
 
       resetForm();
@@ -208,7 +257,14 @@ export default function MovementsScreen() {
             ]}
             onPress={() => setCategoryId(category.id)}
           >
-            <Text style={styles.categoryChipText}>{category.name}</Text>
+            <Text
+              style={[
+                styles.categoryChipText,
+                categoryId === category.id && styles.categoryChipTextActive,
+              ]}
+            >
+              {category.name}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -237,6 +293,28 @@ export default function MovementsScreen() {
         value={note}
         onChangeText={setNote}
       />
+
+      <Text style={styles.label}>Ubicación actual</Text>
+      <Button
+        title={capturingLocation ? 'Obteniendo ubicación...' : 'Agregar ubicación actual'}
+        onPress={handleCaptureLocation}
+        disabled={capturingLocation}
+      />
+
+      <View style={styles.smallSpace} />
+
+      <Button title="Quitar ubicación" onPress={handleClearLocation} />
+
+      {locationLat !== null && locationLng !== null ? (
+        <View style={styles.locationBox}>
+          <Text style={styles.locationText}>Latitud: {locationLat.toFixed(6)}</Text>
+          <Text style={styles.locationText}>Longitud: {locationLng.toFixed(6)}</Text>
+        </View>
+      ) : (
+        <Text style={styles.locationInfo}>No se ha capturado ubicación</Text>
+      )}
+
+      <View style={styles.smallSpace} />
 
       {isEditing ? (
         <>
@@ -272,6 +350,20 @@ export default function MovementsScreen() {
             {movement.note ? (
               <Text style={styles.cardText}>Nota: {movement.note}</Text>
             ) : null}
+
+            {movement.location_lat !== null && movement.location_lat !== undefined &&
+            movement.location_lng !== null && movement.location_lng !== undefined ? (
+              <>
+                <Text style={styles.cardText}>
+                  Lat: {Number(movement.location_lat).toFixed(6)}
+                </Text>
+                <Text style={styles.cardText}>
+                  Lng: {Number(movement.location_lng).toFixed(6)}
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.cardText}>Sin ubicación</Text>
+            )}
 
             <View style={styles.actions}>
               <TouchableOpacity
@@ -356,6 +448,27 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontWeight: '600',
+    color: '#222',
+  },
+  categoryChipTextActive: {
+    color: '#fff',
+  },
+  locationBox: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#cfd8dc',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#f7fbff',
+  },
+  locationText: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  locationInfo: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
   },
   separator: {
     height: 24,

@@ -1,6 +1,49 @@
 const Movimientos = require('../models/Movimientos');
 const Categorias = require('../models/Categorias');
 
+const validateLocation = (location_lat, location_lng) => {
+  const latProvided =
+    location_lat !== undefined &&
+    location_lat !== null &&
+    location_lat !== '';
+
+  const lngProvided =
+    location_lng !== undefined &&
+    location_lng !== null &&
+    location_lng !== '';
+
+  if (latProvided !== lngProvided) {
+    return 'Debe enviar location_lat y location_lng juntas';
+  }
+
+  if (latProvided && lngProvided) {
+    const lat = Number(location_lat);
+    const lng = Number(location_lng);
+
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      return 'location_lat y location_lng deben ser numéricas';
+    }
+
+    if (lat < -90 || lat > 90) {
+      return 'location_lat debe estar entre -90 y 90';
+    }
+
+    if (lng < -180 || lng > 180) {
+      return 'location_lng debe estar entre -180 y 180';
+    }
+  }
+
+  return null;
+};
+
+const normalizeLocationValue = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  return Number(value);
+};
+
 const getMovements = async (req, res) => {
   try {
     const movimientos = await Movimientos.findAll({
@@ -85,6 +128,14 @@ const createMovement = async (req, res) => {
       });
     }
 
+    const locationError = validateLocation(location_lat, location_lng);
+
+    if (locationError) {
+      return res.status(400).json({
+        message: locationError,
+      });
+    }
+
     const categoria = await Categorias.findOne({
       where: {
         id: category_id,
@@ -104,8 +155,8 @@ const createMovement = async (req, res) => {
       amount,
       movement_date,
       note: note || null,
-      location_lat: location_lat || null,
-      location_lng: location_lng || null,
+      location_lat: normalizeLocationValue(location_lat),
+      location_lng: normalizeLocationValue(location_lng),
     });
 
     return res.status(201).json({
@@ -174,6 +225,14 @@ const updateMovement = async (req, res) => {
       });
     }
 
+    const locationError = validateLocation(location_lat, location_lng);
+
+    if (locationError) {
+      return res.status(400).json({
+        message: locationError,
+      });
+    }
+
     const categoria = await Categorias.findOne({
       where: {
         id: category_id,
@@ -193,8 +252,8 @@ const updateMovement = async (req, res) => {
         amount,
         movement_date,
         note: note || null,
-        location_lat: location_lat || null,
-        location_lng: location_lng || null,
+        location_lat: normalizeLocationValue(location_lat),
+        location_lng: normalizeLocationValue(location_lng),
       },
       {
         where: {

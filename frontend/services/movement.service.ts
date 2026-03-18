@@ -10,15 +10,19 @@ export async function getMovements(token: string): Promise<Movement[]> {
   });
 }
 
+type MovementPayload = {
+  category_id: number;
+  type: 'INGRESO' | 'GASTO';
+  amount: number;
+  movement_date: string;
+  note?: string;
+  location_lat?: number | null;
+  location_lng?: number | null;
+};
+
 export async function createMovement(
   token: string,
-  data: {
-    category_id: number;
-    type: 'INGRESO' | 'GASTO';
-    amount: number;
-    movement_date: string;
-    note?: string;
-  }
+  data: MovementPayload
 ) {
   return await apiFetch('/api/movements', {
     method: 'POST',
@@ -33,13 +37,7 @@ export async function createMovement(
 export async function updateMovement(
   token: string,
   id: number,
-  data: {
-    category_id: number;
-    type: 'INGRESO' | 'GASTO';
-    amount: number;
-    movement_date: string;
-    note?: string;
-  }
+  data: MovementPayload
 ) {
   return await apiFetch(`/api/movements/${id}`, {
     method: 'PUT',
